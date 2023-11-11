@@ -4,6 +4,8 @@
 
 #include <libopencm3/stm32/rcc.h> // configuring system clock
 #include <libopencm3/stm32/gpio.h> // to configure GPIO , provided by liopencm3
+#include <libopencm3/cm3/systick.h> // to configure systick perapheril
+#include <libopencm3/cm3/vector.h> // vector table 
 
 
 
@@ -18,21 +20,38 @@ static void gpio_setup(void){
     gpio_mode_setup(GPIOA,GPIO_MODE_OUTPUT,GPIO_PUPD_NONE,GPIO5);
 }
 
-void time_delay(uint32_t ncycle){
-    for (inr i=0;i <ncycle;i++){
-        __asm__ ("nop");  // since we are waiting for time delay , therefore, compiler will remove this because essentially no operation is happening, to stop compiler from doing that,
-                            // we can add inline assembly.
-    }
+volatile unit64_t tick_coont=0; 
+// reason we are using 64 bits although architecture is 32 bits is because we want to keep track of time and total number of days we can keep track with 32 bits is 50 days approx.
+//for this reason , we are using 64 bit so that we can have a bigger time value available. 
+//however this posses a problem that 64 bit additon will take 2 assembly languages, this will cause problem because it is not an atomic operation anymore.
+// to overcome this, we can disable interrupt for this particular operation and enable interrupt again
+
+void sys_tick_handler(void){
+    ticks++;
 }
+
+static void systick_setup(void){
+    systick_set_frequency(1000,8400000);
+    systick_counter_enable(); 
+    // systick notifies main program about "time expiration" as interrupts.
+    systick_interrupt_enable();
+}
+
+uint64_t get_ticks(void){
+    return ticks;
+}
+
 
 int main(){
     rcc_Setup();
     gpio_setup();
+    systick_setup();
+    uint64_t start_time =get_ticks();
     while (1){
-        gpio_toggle(GPIOA,GPIO5);
-        time_delay(25146);
-        gpio_toggle(GPIOA,GPIO5);
-        time_delay(12548);
+        if (get_ticks() - start_time >= 1000){
+            gpio_toggle(GPIOA,GPIO5);
+            start_time = get_time();
+            }
     }
 
     //never returned because micro controller is running at Super Loop execution method
