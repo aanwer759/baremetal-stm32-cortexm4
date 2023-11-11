@@ -1,5 +1,6 @@
 This is a tutorial series made by Low Byte Production Channel on Youtube.
 Link is https://www.youtube.com/watch?v=06ICtJjPKlA&list=PLP29wDx6QmW7HaCrRydOnxcy8QmW0SNdQ&index=1
+Github Repo : https://github.com/lowbyteproductions/bare-metal-series.git
 
 Notes for tutorial number 2: Hello World Blinky
 Libopencm3  : opensource firmware library that for various Cortex M processors.
